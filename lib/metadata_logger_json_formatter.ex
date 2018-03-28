@@ -1,18 +1,46 @@
 defmodule MetadataLoggerJsonFormatter do
-  @moduledoc """
-  Documentation for MetadataLoggerJsonFormatter.
-  """
+  def format(level, message, ts, metadata) do
+    line =
+      metadata
+      |> build_line()
+      |> scrub(level)
+      |> Map.put(:timestamp, format_timestamp(ts))
+      |> Map.put(:level, level)
+      |> Map.put(:message, to_string(message))
+      |> Jason.encode!()
 
-  @doc """
-  Hello world.
+    line <> "\n"
+  end
 
-  ## Examples
+  defp format_timestamp({{y, month, d}, {h, minutes, s, mil}}) do
+    {:ok, dt} = NaiveDateTime.new(y, month, d, h, minutes, s, mil)
+    NaiveDateTime.to_iso8601(dt)
+  end
 
-      iex> MetadataLoggerJsonFormatter.hello
-      :world
+  defp build_line(metadata) do
+    with m <- Enum.into(metadata, %{}),
+         {app, m} <- Map.pop(m, :application),
+         {module, m} <- Map.pop(m, :module),
+         {function, m} <- Map.pop(m, :function),
+         {file, m} <- Map.pop(m, :file),
+         {line, m} <- Map.pop(m, :line),
+         {pid, m} <- Map.pop(m, :pid) do
+      %{
+        app: app,
+        module: module,
+        func: function,
+        file: file,
+        line: line,
+        pid: inspect(pid),
+        metadata: m
+      }
+    end
+  end
 
-  """
-  def hello do
-    :world
+  defp scrub(map, _level) do
+    map
+    |> Map.delete(:func)
+    |> Map.delete(:file)
+    |> Map.delete(:line)
   end
 end
