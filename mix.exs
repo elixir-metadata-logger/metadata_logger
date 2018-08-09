@@ -23,7 +23,8 @@ defmodule MetadataLoggerJsonFormatter.MixProject do
 
   defp deps do
     [
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+      {:ex_doc, "~> 0.19", only: :dev, runtime: false}
     ]
   end
 
