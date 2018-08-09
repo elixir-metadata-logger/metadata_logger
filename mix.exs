@@ -4,7 +4,7 @@ defmodule MetadataLoggerJsonFormatter.MixProject do
   def project do
     [
       app: :metadata_logger_json_formatter,
-      version: "0.1.0",
+      version: "0.1.1-dev",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
