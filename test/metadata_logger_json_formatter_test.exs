@@ -2,89 +2,72 @@ defmodule MetadataLoggerJsonFormatterTest do
   use ExUnit.Case
   doctest MetadataLoggerJsonFormatter
 
-  require Logger
+  @ts_tuple {{2019, 11, 22}, {12, 23, 45, 678}}
+  @ts_iso8601 "2019-11-22T12:23:45.000678"
 
-  import ExUnit.CaptureLog
+  test "moves known metadata into top level" do
+    expected = %{
+      "module" => "Elixir.MetadataLoggerJsonFormatter",
+      "pid" => "#PID<" <> _ = inspect(self()),
+      "metadata" => %{"foo" => "bar", "list" => [1, 2, 3]},
+      "timestamp" => @ts_iso8601,
+      "level" => "info",
+      "message" => "hi"
+    }
 
-  setup do
-    on_exit(fn ->
-      :ok =
-        Logger.configure_backend(
-          :console,
-          format: nil,
-          device: :user,
-          level: nil,
-          metadata: :all,
-          colors: [enabled: false]
-        )
-    end)
+    got =
+      parse_formatted(:info, "hi", @ts_tuple,
+        module: MetadataLoggerJsonFormatter,
+        function: "hello/1",
+        file: "/my/file.ex",
+        line: 11,
+        pid: self(),
+        foo: :bar,
+        list: [1, 2, 3]
+      )
 
-    Logger.configure_backend(:console,
-      format: {MetadataLoggerJsonFormatter, :format},
-      colors: [enabled: false],
-      truncate: :infinity,
-      metadata: :all
-    )
-
-    :ok
+    assert expected == got
   end
 
-  test "log in json" do
-    assert %{
-             "module" => "Elixir.MetadataLoggerJsonFormatterTest",
-             "pid" => _,
-             "metadata" => %{"foo" => "bar", "list" => [1, 2, 3]},
-             "timestamp" => _,
-             "level" => "info",
-             "message" => "hi"
-           } = parsed_log(:info, "hi", foo: :bar, list: [1, 2, 3])
-  end
+  test "does not include nil value for known metadata" do
+    expected = %{
+      "metadata" => %{"nil_val" => nil, "empty_map" => %{}, "empty_list" => []},
+      "timestamp" => @ts_iso8601,
+      "level" => "info",
+      "message" => "hi"
+    }
 
-  test "log metadata in current process" do
-    try do
-      Logger.metadata(foo: :bar)
-      assert %{"metadata" => %{"foo" => "bar"}} = parsed_log(:info, "hi", [])
-    after
-      Logger.metadata(foo: nil)
-    end
-  end
+    got = parse_formatted(:info, "hi", @ts_tuple, nil_val: nil, empty_map: %{}, empty_list: [])
 
-  test "handles missing Logger metadata from Logger.bare_log/3" do
-    keys_got =
-      capture_log(fn -> Logger.bare_log(:info, "hello", hello: :world) end)
-      |> Jason.decode!()
-      |> Map.keys()
-      |> MapSet.new()
-
-    known_keys =
-      [
-        :app,
-        :module,
-        :function,
-        :file,
-        :line
-        # :pid,
-      ]
-      |> Enum.map(&to_string/1)
-      |> MapSet.new()
-
-    assert MapSet.new() == MapSet.intersection(keys_got, known_keys)
+    assert expected == got
   end
 
   test "handles supported types in metadata" do
-    cases = [
-      atom: [:foo, "foo"],
-      float: [0.12345678, 0.12345678],
-      int: [1, 1],
-      list: [[1, "1"], [1, "1"]],
-      map: [%{"a" => 1, :b => "2"}, %{"a" => 1, "b" => "2"}],
-      string: ["1", "1"]
-    ]
+    expected = %{
+      "metadata" => %{
+        "atom" => "foo",
+        "float" => 0.12345678,
+        "int" => 1,
+        "list" => [1, "1"],
+        "map" => %{"a" => 1, "b" => "2"},
+        "string" => "1"
+      },
+      "timestamp" => @ts_iso8601,
+      "level" => "info",
+      "message" => "hi"
+    }
 
-    Enum.each(cases, fn {key, [val, expected]} ->
-      assert {^key, %{"metadata" => %{"val" => ^expected}}} =
-               {key, parsed_log(:info, "hello", val: val)}
-    end)
+    got =
+      parse_formatted(:info, "hi", @ts_tuple,
+        atom: :foo,
+        float: 0.12345678,
+        int: 1,
+        list: [1, "1"],
+        map: %{"a" => 1, :b => "2"},
+        string: "1"
+      )
+
+    assert expected == got
   end
 
   test "handle unsupported types in metadata" do
@@ -97,15 +80,22 @@ defmodule MetadataLoggerJsonFormatterTest do
     ]
 
     Enum.each(cases, fn {key, val} ->
-      output = capture_log(fn -> Logger.log(:info, "hello", val: val) end)
+      output = formatted(:info, "hi", @ts_tuple, val: val)
 
       assert String.starts_with?(output, "could not format: %Protocol.UndefinedError"),
              "should not handle #{inspect(val)} (#{key}); #{output}"
     end)
   end
 
-  defp parsed_log(level, message, metadata) do
-    captured = capture_log(fn -> Logger.log(level, message, metadata) end)
-    Jason.decode!(captured)
+  defp formatted(level, message, ts, metadata) do
+    output_iodata = MetadataLoggerJsonFormatter.format(level, message, ts, metadata)
+
+    IO.iodata_to_binary(output_iodata)
+  end
+
+  defp parse_formatted(level, message, ts, metadata) do
+    output = formatted(level, message, ts, metadata)
+
+    Jason.decode!(output)
   end
 end

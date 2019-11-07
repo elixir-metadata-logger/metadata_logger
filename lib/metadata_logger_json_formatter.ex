@@ -58,7 +58,7 @@ defmodule MetadataLoggerJsonFormatter do
 
   defp scrub(map, _level) do
     map
-    |> Map.delete(:func)
+    |> Map.delete(:function)
     |> Map.delete(:file)
     |> Map.delete(:line)
   end
