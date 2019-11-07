@@ -20,9 +20,9 @@ defmodule MetadataLoggerJsonFormatter do
       |> Map.put(:timestamp, format_timestamp(ts))
       |> Map.put(:level, level)
       |> Map.put(:message, to_string(message))
-      |> Jason.encode!()
+      |> Jason.encode_to_iodata!()
 
-    line <> "\n"
+    [line, "\n"]
   end
 
   defp format_timestamp({{y, month, d}, {h, minutes, s, mil}}) do
