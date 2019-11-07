@@ -7,4 +7,3 @@
 *.ez
 erl_crash.dump
 metadata_logger_json_formatter-*.tar
-mix.lock
