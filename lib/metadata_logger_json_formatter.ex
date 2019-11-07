@@ -33,13 +33,17 @@ defmodule MetadataLoggerJsonFormatter do
   end
 
   defp build_line(metadata) do
+    # https://hexdocs.pm/logger/Logger.html#module-metadata
     with m <- Enum.into(metadata, %{}),
          {app, m} <- Map.pop(m, :application),
          {module, m} <- Map.pop(m, :module),
          {function, m} <- Map.pop(m, :function),
          {file, m} <- Map.pop(m, :file),
          {line, m} <- Map.pop(m, :line),
-         {pid, m} <- Map.pop(m, :pid) do
+         {pid, m} <- Map.pop(m, :pid),
+         {crash_reason, m} <- Map.pop(m, :crash_reason),
+         {initial_call, m} <- Map.pop(m, :initial_call),
+         {registered_name, m} <- Map.pop(m, :registered_name) do
       %{metadata: m}
       |> put_val(:app, app)
       |> put_val(:module, module)
@@ -47,6 +51,9 @@ defmodule MetadataLoggerJsonFormatter do
       |> put_val(:file, file)
       |> put_val(:line, line)
       |> put_val(:pid, nil_or_inspect(pid))
+      |> put_val(:crash_reason, nil_or_inspect(crash_reason))
+      |> put_val(:initial_call, nil_or_inspect(initial_call))
+      |> put_val(:registered_name, nil_or_inspect(registered_name))
     end
   end
 

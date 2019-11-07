@@ -87,6 +87,27 @@ defmodule MetadataLoggerJsonFormatterTest do
     end)
   end
 
+  test "handles erlang error logger metadata" do
+    expected = %{
+      "crash_reason" => "{:foo, []}",
+      "initial_call" => "{:hello, :world, 1}",
+      "registered_name" => ":me",
+      "metadata" => %{},
+      "timestamp" => @ts_iso8601,
+      "level" => "info",
+      "message" => "hi"
+    }
+
+    got =
+      parse_formatted(:info, "hi", @ts_tuple,
+        crash_reason: {:foo, []},
+        initial_call: {:hello, :world, 1},
+        registered_name: :me
+      )
+
+    assert expected == got
+  end
+
   defp formatted(level, message, ts, metadata) do
     output_iodata = MetadataLoggerJsonFormatter.format(level, message, ts, metadata)
 
