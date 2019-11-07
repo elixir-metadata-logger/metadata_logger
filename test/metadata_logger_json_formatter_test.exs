@@ -31,7 +31,6 @@ defmodule MetadataLoggerJsonFormatterTest do
 
   test "log in json" do
     assert %{
-             "app" => nil,
              "module" => "Elixir.MetadataLoggerJsonFormatterTest",
              "pid" => _,
              "metadata" => %{"foo" => "bar", "list" => [1, 2, 3]},
@@ -48,6 +47,28 @@ defmodule MetadataLoggerJsonFormatterTest do
     after
       Logger.metadata(foo: nil)
     end
+  end
+
+  test "handles missing Logger metadata from Logger.bare_log/3" do
+    keys_got =
+      capture_log(fn -> Logger.bare_log(:info, "hello", hello: :world) end)
+      |> Jason.decode!()
+      |> Map.keys()
+      |> MapSet.new()
+
+    known_keys =
+      [
+        :app,
+        :module,
+        :function,
+        :file,
+        :line
+        # :pid,
+      ]
+      |> Enum.map(&to_string/1)
+      |> MapSet.new()
+
+    assert MapSet.new() == MapSet.intersection(keys_got, known_keys)
   end
 
   test "handles supported types in metadata" do

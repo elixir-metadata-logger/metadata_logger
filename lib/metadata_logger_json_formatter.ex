@@ -40,17 +40,21 @@ defmodule MetadataLoggerJsonFormatter do
          {file, m} <- Map.pop(m, :file),
          {line, m} <- Map.pop(m, :line),
          {pid, m} <- Map.pop(m, :pid) do
-      %{
-        app: app,
-        module: module,
-        func: function,
-        file: file,
-        line: line,
-        pid: inspect(pid),
-        metadata: m
-      }
+      %{metadata: m}
+      |> put_val(:app, app)
+      |> put_val(:module, module)
+      |> put_val(:function, function)
+      |> put_val(:file, file)
+      |> put_val(:line, line)
+      |> put_val(:pid, nil_or_inspect(pid))
     end
   end
+
+  defp nil_or_inspect(nil), do: nil
+  defp nil_or_inspect(val), do: inspect(val)
+
+  def put_val(map, _key, nil), do: map
+  def put_val(map, key, val), do: Map.put(map, key, val)
 
   defp scrub(map, _level) do
     map
