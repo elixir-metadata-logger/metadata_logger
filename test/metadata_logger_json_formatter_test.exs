@@ -50,6 +50,39 @@ defmodule MetadataLoggerJsonFormatterTest do
     end
   end
 
+  test "handles supported types in metadata" do
+    cases = [
+      atom: [:foo, "foo"],
+      float: [0.12345678, 0.12345678],
+      int: [1, 1],
+      list: [[1, "1"], [1, "1"]],
+      map: [%{"a" => 1, :b => "2"}, %{"a" => 1, "b" => "2"}],
+      string: ["1", "1"]
+    ]
+
+    Enum.each(cases, fn {key, [val, expected]} ->
+      assert {^key, %{"metadata" => %{"val" => ^expected}}} =
+               {key, parsed_log(:info, "hello", val: val)}
+    end)
+  end
+
+  test "handle unsupported types in metadata" do
+    cases = [
+      bitstring: <<1::3>>,
+      fn: fn -> nil end,
+      pid: self(),
+      struct: %URI{},
+      tuple: {}
+    ]
+
+    Enum.each(cases, fn {key, val} ->
+      output = capture_log(fn -> Logger.log(:info, "hello", val: val) end)
+
+      assert String.starts_with?(output, "could not format: "),
+             "should not handle #{inspect(val)} (#{key})"
+    end)
+  end
+
   defp parsed_log(level, message, metadata) do
     captured = capture_log(fn -> Logger.log(level, message, metadata) end)
     Jason.decode!(captured)
