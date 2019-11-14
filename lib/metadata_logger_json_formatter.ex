@@ -24,7 +24,7 @@ defmodule MetadataLoggerJsonFormatter do
 
     [line, "\n"]
   rescue
-    _ -> "could not format: #{inspect({level, ts, message, metadata})}"
+    e -> "could not format: #{inspect(e)} - #{inspect({level, ts, message, metadata})}"
   end
 
   defp format_timestamp({{y, month, d}, {h, minutes, s, mil}}) do

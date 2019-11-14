@@ -99,8 +99,8 @@ defmodule MetadataLoggerJsonFormatterTest do
     Enum.each(cases, fn {key, val} ->
       output = capture_log(fn -> Logger.log(:info, "hello", val: val) end)
 
-      assert String.starts_with?(output, "could not format: "),
-             "should not handle #{inspect(val)} (#{key})"
+      assert String.starts_with?(output, "could not format: %Protocol.UndefinedError"),
+             "should not handle #{inspect(val)} (#{key}); #{output}"
     end)
   end
 
