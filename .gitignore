@@ -6,4 +6,4 @@
 
 *.ez
 erl_crash.dump
-metadata_logger_json_formatter-*.tar
+metadata_logger-*.tar

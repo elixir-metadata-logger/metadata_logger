@@ -1,13 +1,13 @@
-defmodule MetadataLoggerJsonFormatterTest do
+defmodule MetadataLoggerTest do
   use ExUnit.Case
-  doctest MetadataLoggerJsonFormatter
+  doctest MetadataLogger
 
   @ts_tuple {{2019, 11, 22}, {12, 23, 45, 678}}
   @ts_iso8601 "2019-11-22T12:23:45.000678"
 
   test "moves known metadata into top level" do
     expected = %{
-      "module" => "Elixir.MetadataLoggerJsonFormatter",
+      "module" => "Elixir.MetadataLogger",
       "pid" => "#PID<" <> _ = inspect(self()),
       "metadata" => %{"foo" => "bar", "list" => [1, 2, 3]},
       "timestamp" => @ts_iso8601,
@@ -17,7 +17,7 @@ defmodule MetadataLoggerJsonFormatterTest do
 
     got =
       parse_formatted(:info, "hi", @ts_tuple,
-        module: MetadataLoggerJsonFormatter,
+        module: MetadataLogger,
         function: "hello/1",
         file: "/my/file.ex",
         line: 11,
@@ -109,7 +109,7 @@ defmodule MetadataLoggerJsonFormatterTest do
   end
 
   defp formatted(level, message, ts, metadata) do
-    output_iodata = MetadataLoggerJsonFormatter.format(level, message, ts, metadata)
+    output_iodata = MetadataLogger.format(level, message, ts, metadata)
 
     IO.iodata_to_binary(output_iodata)
   end

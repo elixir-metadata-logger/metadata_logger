@@ -1,9 +1,9 @@
-defmodule MetadataLoggerJsonFormatter.MixProject do
+defmodule MetadataLogger.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :metadata_logger_json_formatter,
+      app: :metadata_logger,
       version: "0.1.1-dev",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
@@ -33,9 +33,9 @@ defmodule MetadataLoggerJsonFormatter.MixProject do
     [
       licenses: ["MIT"],
       links: %{
-        "GitHub" => "https://github.com/chulkilee/metadata_logger_json_formatter",
+        "GitHub" => "https://github.com/elixir-metadata-logger/metadata_logger",
         "Changelog" =>
-          "https://github.com/chulkilee/metadata_logger_json_formatter/blob/master/CHANGELOG.md"
+          "https://github.com/elixir-metadata-logger/metadata_logger/blob/master/CHANGELOG.md"
       },
       maintainers: ["Chulki Lee"]
     ]

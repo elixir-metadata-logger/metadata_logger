@@ -1,11 +1,11 @@
-defmodule MetadataLoggerJsonFormatter do
+defmodule MetadataLogger do
   @moduledoc """
   Logger formatter to print message and metadata in a single-line json.
 
   ```json
   config :logger, :console,
     level: :debug,
-    format: {MetadataLoggerJsonFormatter, :format},
+    format: {MetadataLogger, :format},
     colors: [enabled: false],
     metadata: :all,
     truncate: :infinity,

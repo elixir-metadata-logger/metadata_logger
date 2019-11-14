@@ -1,1 +1,1 @@
-# MetadataLoggerJsonFormatter
+# MetadataLogger
