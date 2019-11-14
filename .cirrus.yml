@@ -1,3 +1,6 @@
+env:
+  LANG: C.UTF-8
+
 test_task:
   container:
     image: elixir:latest
