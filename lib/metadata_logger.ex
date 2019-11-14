@@ -1,8 +1,10 @@
 defmodule MetadataLogger do
   @moduledoc """
-  Logger formatter to print message and metadata in a single-line json.
+  Logging with metadata.
 
-  ```json
+  ## Configuration
+
+  ```elixir
   config :logger, :console,
     level: :debug,
     format: {MetadataLogger, :format},
@@ -12,28 +14,87 @@ defmodule MetadataLogger do
     utc_log: true
   ```
   """
-  def format(level, message, ts, metadata) do
-    line =
-      metadata
-      |> build_line()
-      |> scrub(level)
-      |> Map.put(:timestamp, format_timestamp(ts))
-      |> Map.put(:level, level)
-      |> Map.put(:message, to_string(message))
-      |> Jason.encode_to_iodata!()
 
-    [line, "\n"]
+  @doc """
+  Formatter function to print message and metadata in a single-line json.
+
+  Make sure all metadata except known metadata encodable by `Jason.encode_to_iodata!/2`.
+  See `log_to_map/4` for transformation on known metadata.
+
+  It removes `:function`, `:file`, and `:line` from the log.
+
+  ## Examples
+
+      iex> MetadataLogger.format(
+      ...>   :info,
+      ...>   ["hello", " ", "world"],
+      ...>   {{2019, 11, 22}, {12, 23, 45, 678}},
+      ...>   function: "hello/1",
+      ...>   file: "/my/file.ex",
+      ...>   line: 11,
+      ...>   foo: :bar
+      ...> ) |> Jason.decode!()
+      %{
+        "level" => "info",
+        "message" => "hello world",
+        "metadata" => %{"foo" => "bar"},
+        "timestamp" => "2019-11-22T12:23:45.000678"
+      }
+
+  """
+  @spec format(Logger.level(), Logger.message(), Logger.Formatter.time(), keyword) ::
+          IO.chardata()
+  def format(level, message, ts, metadata) do
+    map = log_to_map(level, message, ts, metadata)
+
+    [
+      map
+      |> scrub()
+      |> Jason.encode_to_iodata!(map),
+      "\n"
+    ]
   rescue
     e -> "could not format: #{inspect(e)} - #{inspect({level, ts, message, metadata})}"
   end
 
-  defp format_timestamp({{y, month, d}, {h, minutes, s, mil}}) do
-    {:ok, dt} = NaiveDateTime.new(y, month, d, h, minutes, s, mil)
-    NaiveDateTime.to_iso8601(dt)
-  end
+  @doc """
+  Get a map from log formatter arguments.
 
-  defp build_line(metadata) do
-    # https://hexdocs.pm/logger/Logger.html#module-metadata
+  It converts `t:Logger.Formatter.time/0` into `NaiveDateTime` so it is recommended to configure logger to use UTC by setting `:utc_log` to `true`.
+
+  It converts metadata keyword into map using `Enum.into/2` therefore duplicated keys will be removed.
+
+  It moves following known metadata to the top level. See [Logger Metadata](https://hexdocs.pm/logger/Logger.html#module-metadata) for details.
+
+  - `:application`
+  - `:module`
+  - `:function`
+  - `:file`
+  - `:line`
+  - `:pid`
+  - `:crash_reason`
+  - `:initial_call`
+  - `:registered_name`
+
+  ## Examples
+
+      iex> MetadataLogger.log_to_map(
+      ...>   :info,
+      ...>   ["hello", " ", "world"],
+      ...>   {{2019, 11, 22}, {12, 23, 45, 678}},
+      ...>   foo: :bar
+      ...> )
+      %{
+        level: :info,
+        message: "hello world",
+        metadata: %{foo: :bar},
+        timestamp: ~N[2019-11-22 12:23:45.000678]
+      }
+
+  """
+  @spec log_to_map(Logger.level(), Logger.message(), Logger.Formatter.time(), keyword) ::
+          map()
+  def log_to_map(level, message, ts, metadata) do
     with m <- Enum.into(metadata, %{}),
          {app, m} <- Map.pop(m, :application),
          {module, m} <- Map.pop(m, :module),
@@ -55,15 +116,23 @@ defmodule MetadataLogger do
       |> put_val(:initial_call, nil_or_inspect(initial_call))
       |> put_val(:registered_name, nil_or_inspect(registered_name))
     end
+    |> Map.put(:timestamp, transform_timestamp(ts))
+    |> Map.put(:level, level)
+    |> Map.put(:message, to_string(message))
   end
 
   defp nil_or_inspect(nil), do: nil
   defp nil_or_inspect(val), do: inspect(val)
 
-  def put_val(map, _key, nil), do: map
-  def put_val(map, key, val), do: Map.put(map, key, val)
+  defp put_val(map, _key, nil), do: map
+  defp put_val(map, key, val), do: Map.put(map, key, val)
 
-  defp scrub(map, _level) do
+  defp transform_timestamp({{y, month, d}, {h, minutes, s, mil}}) do
+    {:ok, dt} = NaiveDateTime.new(y, month, d, h, minutes, s, mil)
+    dt
+  end
+
+  defp scrub(map) do
     map
     |> Map.delete(:function)
     |> Map.delete(:file)

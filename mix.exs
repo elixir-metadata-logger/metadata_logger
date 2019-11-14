@@ -1,17 +1,22 @@
 defmodule MetadataLogger.MixProject do
   use Mix.Project
 
+  @version "0.2.0-dev"
+
   def project do
     [
       app: :metadata_logger,
-      version: "0.1.1-dev",
+      version: @version,
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
 
       # hex
-      description: "Logger formatter to print message and metadata in a single-line json",
-      package: package()
+      description: "Logging with metadata",
+      package: package(),
+
+      # ex_doc
+      docs: docs()
     ]
   end
 
@@ -38,6 +43,15 @@ defmodule MetadataLogger.MixProject do
           "https://github.com/elixir-metadata-logger/metadata_logger/blob/master/CHANGELOG.md"
       },
       maintainers: ["Chulki Lee"]
+    ]
+  end
+
+  defp docs do
+    [
+      name: "MetadataLogger",
+      source_ref: "v#{@version}",
+      canonical: "https://hexdocs.pm/metadata_logger",
+      source_url: "https://github.com/elixir-metadata-logger/metadata_logger"
     ]
   end
 end
