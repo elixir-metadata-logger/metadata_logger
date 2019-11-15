@@ -41,6 +41,22 @@ defmodule MetadataLogger do
         "timestamp" => "2019-11-22T12:23:45.000678"
       }
 
+      iex> MetadataLogger.format(
+      ...>   :info,
+      ...>   %{hello: :world},
+      ...>   {{2019, 11, 22}, {12, 23, 45, 678}},
+      ...>   function: "hello/1",
+      ...>   file: "/my/file.ex",
+      ...>   line: 11,
+      ...>   foo: :bar
+      ...> ) |> Jason.decode!()
+      %{
+        "level" => "info",
+        "message" => %{"hello" => "world"},
+        "metadata" => %{"foo" => "bar"},
+        "timestamp" => "2019-11-22T12:23:45.000678"
+      }
+
   """
   @spec format(Logger.level(), Logger.message(), Logger.Formatter.time(), keyword) ::
           IO.chardata()
@@ -112,8 +128,39 @@ defmodule MetadataLogger do
         timestamp: ~N[2019-11-22 12:23:45.000678]
       }
 
+      iex> MetadataLogger.log_to_map(
+      ...>   :info,
+      ...>   %{hello: :world},
+      ...>   {{2019, 11, 22}, {12, 23, 45, 678}},
+      ...>   []
+      ...> )
+      %{
+        level: :info,
+        message: %{hello: :world},
+        metadata: %{},
+        timestamp: ~N[2019-11-22 12:23:45.000678]
+      }
+
+      iex> MetadataLogger.log_to_map(
+      ...>   :info,
+      ...>   [foo: 1, foo: 2],
+      ...>   {{2019, 11, 22}, {12, 23, 45, 678}},
+      ...>   []
+      ...> )
+      %{
+        level: :info,
+        message: %{foo: 2},
+        metadata: %{},
+        timestamp: ~N[2019-11-22 12:23:45.000678]
+      }
+
   """
-  @spec log_to_map(Logger.level(), Logger.message(), Logger.Formatter.time(), keyword) ::
+  @spec log_to_map(
+          Logger.level(),
+          Logger.message() | Logger.report(),
+          Logger.Formatter.time(),
+          keyword
+        ) ::
           map()
   def log_to_map(level, message, ts, metadata) do
     with m <- Enum.into(metadata, %{}),
@@ -146,9 +193,9 @@ defmodule MetadataLogger do
       |> put_val(:ancestors, nil_or_inspect_list(ancestors))
       |> put_val(:callers, nil_or_inspect_list(callers))
     end
-    |> Map.put(:timestamp, transform_timestamp(ts))
     |> Map.put(:level, level)
-    |> Map.put(:message, to_string(message))
+    |> Map.put(:message, transform_message(message))
+    |> Map.put(:timestamp, transform_timestamp(ts))
   end
 
   defp nil_or_inspect(nil), do: nil
@@ -159,6 +206,12 @@ defmodule MetadataLogger do
 
   defp put_val(map, _key, nil), do: map
   defp put_val(map, key, val), do: Map.put(map, key, val)
+
+  defp transform_message(%_{} = m), do: to_string(m)
+  defp transform_message(m) when is_map(m), do: m
+  defp transform_message([{_k, _v} | _t] = m), do: Enum.into(m, %{})
+  defp transform_message(m) when is_list(m), do: IO.iodata_to_binary(m)
+  defp transform_message(m), do: to_string(m)
 
   defp transform_timestamp({{y, month, d}, {h, minutes, s, mil}}) do
     {:ok, dt} = NaiveDateTime.new(y, month, d, h, minutes, s, mil)

@@ -5,6 +5,46 @@ defmodule MetadataLoggerTest do
   @ts_tuple {{2019, 11, 22}, {12, 23, 45, 678}}
   @ts_iso8601 "2019-11-22T12:23:45.000678"
 
+  test "uses to_string for struct message" do
+    expected = %{
+      "module" => "Elixir.MetadataLogger",
+      "pid" => "#PID<" <> _ = inspect(self()),
+      "metadata" => %{"foo" => "bar", "list" => [1, 2, 3]},
+      "timestamp" => @ts_iso8601,
+      "level" => "info",
+      "message" => "https://elixir-lang.org"
+    }
+
+    got =
+      parse_formatted(:info, URI.parse("https://elixir-lang.org"), @ts_tuple,
+        module: MetadataLogger,
+        function: "hello/1",
+        file: "/my/file.ex",
+        line: 11,
+        pid: self(),
+        foo: :bar,
+        list: [1, 2, 3]
+      )
+
+    assert expected == got
+  end
+
+  test "cannot handle a map with non-encodable" do
+    got =
+      parse_formatted(:info, %{uri: URI.parse("https://elixir-lang.org")}, @ts_tuple,
+        module: MetadataLogger,
+        function: "hello/1",
+        file: "/my/file.ex",
+        line: 11,
+        pid: self(),
+        foo: :bar,
+        list: [1, 2, 3]
+      )
+      |> Map.fetch!("message")
+
+    assert String.starts_with?(got, "could not format json message")
+  end
+
   test "moves known metadata into top level" do
     expected = %{
       "module" => "Elixir.MetadataLogger",
