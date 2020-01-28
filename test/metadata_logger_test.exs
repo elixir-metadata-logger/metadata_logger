@@ -9,6 +9,7 @@ defmodule MetadataLoggerTest do
     expected = %{
       "module" => "Elixir.MetadataLogger",
       "pid" => "#PID<" <> _ = inspect(self()),
+      "gl" => "#PID<" <> _ = inspect(self()),
       "metadata" => %{"foo" => "bar", "list" => [1, 2, 3]},
       "timestamp" => @ts_iso8601,
       "level" => "info",
@@ -22,6 +23,7 @@ defmodule MetadataLoggerTest do
         file: "/my/file.ex",
         line: 11,
         pid: self(),
+        gl: self(),
         foo: :bar,
         list: [1, 2, 3]
       )
