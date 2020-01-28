@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## 0.2.1 - 2020-01-28
+
+### Fixed
+
+- Handle erlang logger metadata: `gid`, `mfa`, `report_cb`
+
 ## 0.2.0 - 2019-11-14
 
 ### Added
@@ -15,4 +21,4 @@
 
 ## 0.1.0 - 2018-08-08
 
-[Unreleased]: https://github.com/elixir-metadata-logger/metadata_logger/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/elixir-metadata-logger/metadata_logger/compare/v0.2.1...HEAD
