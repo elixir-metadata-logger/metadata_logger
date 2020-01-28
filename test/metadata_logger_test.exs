@@ -104,6 +104,8 @@ defmodule MetadataLoggerTest do
       parse_formatted(:info, "hi", @ts_tuple,
         crash_reason: {:foo, []},
         initial_call: {:hello, :world, 1},
+        report_cb: & &1,
+        mfa: {Foo, :bar, 1},
         registered_name: :me
       )
 

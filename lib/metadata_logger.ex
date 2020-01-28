@@ -96,6 +96,7 @@ defmodule MetadataLogger do
           map()
   def log_to_map(level, message, ts, metadata) do
     with m <- Enum.into(metadata, %{}),
+         m <- Map.drop(m, [:mfa, :report_cb]),
          {app, m} <- Map.pop(m, :application),
          {module, m} <- Map.pop(m, :module),
          {function, m} <- Map.pop(m, :function),
