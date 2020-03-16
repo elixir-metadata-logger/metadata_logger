@@ -10,6 +10,7 @@ defmodule MetadataLoggerTest do
       "module" => "Elixir.MetadataLogger",
       "pid" => "#PID<" <> _ = inspect(self()),
       "gl" => "#PID<" <> _ = inspect(self()),
+      "domain" => ["elixir"],
       "metadata" => %{"foo" => "bar", "list" => [1, 2, 3]},
       "timestamp" => @ts_iso8601,
       "level" => "info",
@@ -25,7 +26,8 @@ defmodule MetadataLoggerTest do
         pid: self(),
         gl: self(),
         foo: :bar,
-        list: [1, 2, 3]
+        list: [1, 2, 3],
+        domain: [:elixir]
       )
 
     assert expected == got

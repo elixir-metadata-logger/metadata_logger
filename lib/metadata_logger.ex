@@ -76,6 +76,7 @@ defmodule MetadataLogger do
   - `:crash_reason`
   - `:initial_call`
   - `:registered_name`
+  - `:domain`
 
   Followings metadata will be removed:
 
@@ -112,6 +113,7 @@ defmodule MetadataLogger do
          {gl, m} <- Map.pop(m, :gl),
          {crash_reason, m} <- Map.pop(m, :crash_reason),
          {initial_call, m} <- Map.pop(m, :initial_call),
+         {domain, m} <- Map.pop(m, :domain),
          {registered_name, m} <- Map.pop(m, :registered_name) do
       %{metadata: m}
       |> put_val(:app, app)
@@ -124,6 +126,7 @@ defmodule MetadataLogger do
       |> put_val(:crash_reason, nil_or_inspect(crash_reason))
       |> put_val(:initial_call, nil_or_inspect(initial_call))
       |> put_val(:registered_name, nil_or_inspect(registered_name))
+      |> put_val(:domain, domain)
     end
     |> Map.put(:timestamp, transform_timestamp(ts))
     |> Map.put(:level, level)
