@@ -72,9 +72,15 @@ defmodule MetadataLogger do
   - `:file`
   - `:line`
   - `:pid`
+  - `:gl`
   - `:crash_reason`
   - `:initial_call`
   - `:registered_name`
+
+  Followings metadata will be removed:
+
+  - `:mfa`: see `:module` and `:funtion`
+  - `:report_cb`
 
   ## Examples
 
