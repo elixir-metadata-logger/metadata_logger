@@ -77,6 +77,8 @@ defmodule MetadataLogger do
   - `:initial_call`
   - `:registered_name`
   - `:domain`
+  - `:ancestors`
+  - `:callers`
 
   Followings metadata will be removed:
 
@@ -111,6 +113,8 @@ defmodule MetadataLogger do
          {line, m} <- Map.pop(m, :line),
          {pid, m} <- Map.pop(m, :pid),
          {gl, m} <- Map.pop(m, :gl),
+         {ancestors, m} <- Map.pop(m, :ancestors),
+         {callers, m} <- Map.pop(m, :callers),
          {crash_reason, m} <- Map.pop(m, :crash_reason),
          {initial_call, m} <- Map.pop(m, :initial_call),
          {domain, m} <- Map.pop(m, :domain),
@@ -127,6 +131,8 @@ defmodule MetadataLogger do
       |> put_val(:initial_call, nil_or_inspect(initial_call))
       |> put_val(:registered_name, nil_or_inspect(registered_name))
       |> put_val(:domain, domain)
+      |> put_val(:ancestors, nil_or_inspect_list(ancestors))
+      |> put_val(:callers, nil_or_inspect_list(callers))
     end
     |> Map.put(:timestamp, transform_timestamp(ts))
     |> Map.put(:level, level)
@@ -135,6 +141,9 @@ defmodule MetadataLogger do
 
   defp nil_or_inspect(nil), do: nil
   defp nil_or_inspect(val), do: inspect(val)
+
+  defp nil_or_inspect_list(nil), do: nil
+  defp nil_or_inspect_list(val), do: Enum.map(val, &inspect/1)
 
   defp put_val(map, _key, nil), do: map
   defp put_val(map, key, val), do: Map.put(map, key, val)
