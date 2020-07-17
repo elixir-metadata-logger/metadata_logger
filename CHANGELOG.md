@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## 0.3.0 - 2020-07-17
+
+### Fixed
+
+- Handle Elixir logger metadata: `domain`, `callers`, `ancestors`
+
+### Changed
+
+- Produce JSON when formating failed
+
 ## 0.2.1 - 2020-01-28
 
 ### Fixed
