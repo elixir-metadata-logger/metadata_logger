@@ -87,11 +87,24 @@ defmodule MetadataLoggerTest do
       tuple: {}
     ]
 
-    Enum.each(cases, fn {key, val} ->
-      output = formatted(:info, "hi", @ts_tuple, val: val)
+    Enum.each(cases, fn {_key, val} ->
+      output = parse_formatted(:info, "hi", @ts_tuple, val: val)
+      expected_metadata = inspect(val: val)
+      expected_ts = inspect(@ts_tuple)
 
-      assert String.starts_with?(output, "could not format: %Protocol.UndefinedError"),
-             "should not handle #{inspect(val)} (#{key}); #{output}"
+      assert %{
+               "level" => "error",
+               "message" => "could not format json message",
+               "logger_data" => %{
+                 "level" => ":info",
+                 "message" => "\"hi\"",
+                 "ts" => ^expected_ts,
+                 "exception" => exception,
+                 "metadata" => ^expected_metadata
+               }
+             } = output
+
+      assert String.starts_with?(exception, "%Protocol.UndefinedError{")
     end)
   end
 
