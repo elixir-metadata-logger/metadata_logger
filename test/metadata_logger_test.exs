@@ -125,7 +125,12 @@ defmodule MetadataLoggerTest do
         initial_call: {:hello, :world, 1},
         report_cb: & &1,
         mfa: {Foo, :bar, 1},
-        registered_name: :me
+        registered_name: :me,
+        error_logger: %{
+          report_cb: & &1,
+          tag: :info_report,
+          type: :std_info
+        }
       )
 
     assert expected == got
