@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## 0.3.1 - 2020-09-09
+
+### Fixed
+
+- Ignore `error_logger` metadata.
+
 ## 0.3.0 - 2020-07-17
 
 ### Fixed
@@ -31,4 +37,4 @@
 
 ## 0.1.0 - 2018-08-08
 
-[Unreleased]: https://github.com/elixir-metadata-logger/metadata_logger/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/elixir-metadata-logger/metadata_logger/compare/v0.3.1...HEAD
