@@ -154,6 +154,20 @@ defmodule MetadataLogger do
         timestamp: ~N[2019-11-22 12:23:45.000678]
       }
 
+      # use erl_level (available since Elixir 1.11)
+      iex> MetadataLogger.log_to_map(
+      ...>   :warn,
+      ...>   [foo: 1, foo: 2],
+      ...>   {{2019, 11, 22}, {12, 23, 45, 678}},
+      ...>   [erl_level: :warning]
+      ...> )
+      %{
+        level: :warning,
+        message: %{foo: 2},
+        metadata: %{},
+        timestamp: ~N[2019-11-22 12:23:45.000678]
+      }
+
   """
   @spec log_to_map(
           Logger.level(),
@@ -163,8 +177,10 @@ defmodule MetadataLogger do
         ) ::
           map()
   def log_to_map(level, message, ts, metadata) do
-    with m <- Enum.into(metadata, %{}),
-         m <- Map.drop(m, [:error_logger, :mfa, :report_cb]),
+    m = Enum.into(metadata, %{})
+    {level, m} = Map.pop(m, :erl_level, level)
+
+    with m <- Map.drop(m, [:error_logger, :mfa, :report_cb]),
          {app, m} <- Map.pop(m, :application),
          {module, m} <- Map.pop(m, :module),
          {function, m} <- Map.pop(m, :function),
