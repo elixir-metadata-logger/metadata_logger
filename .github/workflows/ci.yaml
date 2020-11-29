@@ -3,13 +3,24 @@ on: [pull_request, push]
 jobs:
   test:
     name: test
-    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        otp: ['23.1.4', '22.3.4.12']
+        elixir: ['1.11.2', '1.10.4']
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-elixir@v1
         with:
-          otp-version: "23.0.4"
-          elixir-version: "1.10.4"
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+          experimental-otp: true
+      - uses: actions/cache@v2
+        with:
+          path: |
+            _build
+            deps
+          key: ${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('mix.lock') }}
       - run: mix deps.get
       - run: mix format --check-formatted
       - run: mix test
