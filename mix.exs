@@ -40,7 +40,7 @@ defmodule MetadataLogger.MixProject do
       links: %{
         "GitHub" => "https://github.com/elixir-metadata-logger/metadata_logger",
         "Changelog" =>
-          "https://github.com/elixir-metadata-logger/metadata_logger/blob/master/CHANGELOG.md"
+          "https://github.com/elixir-metadata-logger/metadata_logger/blob/main/CHANGELOG.md"
       },
       maintainers: ["Chulki Lee"]
     ]
