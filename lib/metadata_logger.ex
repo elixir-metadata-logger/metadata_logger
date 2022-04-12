@@ -71,18 +71,21 @@ defmodule MetadataLogger do
     ]
   rescue
     e ->
-      %{
-        level: "error",
-        message: "could not format json message",
-        logger_data: %{
-          exception: inspect(e),
-          level: inspect(level),
-          ts: inspect(ts),
-          message: inspect(message),
-          metadata: inspect(metadata)
+      [
+        %{
+          level: "error",
+          message: "could not format json message",
+          logger_data: %{
+            exception: inspect(e),
+            level: inspect(level),
+            ts: inspect(ts),
+            message: inspect(message),
+            metadata: inspect(metadata)
+          }
         }
-      }
-      |> Jason.encode!()
+        |> Jason.encode!(),
+        "\n"
+      ]
   end
 
   @doc """
