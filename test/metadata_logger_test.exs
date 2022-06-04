@@ -177,8 +177,8 @@ defmodule MetadataLoggerTest do
   end
 
   test "Always appends a newline" do
-    assert String.ends_with?(formatted(:info, "hi",  @ts_tuple, %{}), "\n")
-    assert String.ends_with?(formatted(:info, "hi",  @ts_tuple, val: %URI{}), "\n")
+    assert String.ends_with?(formatted(:info, "hi", @ts_tuple, %{}), "\n")
+    assert String.ends_with?(formatted(:info, "hi", @ts_tuple, val: %URI{}), "\n")
   end
 
   defp formatted(level, message, ts, metadata) do

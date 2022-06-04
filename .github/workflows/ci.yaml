@@ -5,16 +5,18 @@ jobs:
     name: test
     strategy:
       matrix:
-        otp: ['23.1.4', '22.3.4.12']
-        elixir: ['1.11.2', '1.10.4']
+        elixir: ['1.13.4', '1.12.3', '1.11.4']
+        otp: ['24.3', '23.3.4.14', '22.3.4.26']
+        include:
+          - elixir: '1.13.4'
+            otp: '25.0'
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-elixir@v1
+      - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
-          experimental-otp: true
       - uses: actions/cache@v2
         with:
           path: |
@@ -23,4 +25,5 @@ jobs:
           key: ${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('mix.lock') }}
       - run: mix deps.get
       - run: mix format --check-formatted
+        if: ${{ matrix.elixir == '1.13.4' && matrix.otp == '25.0' }}
       - run: mix test
