@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## 0.3.2 - 2022-06-04
+
+### Fixed
+
+- Add a newline when producing a formatting error message (#19 by @jbruggem)
+
 ## 0.3.1 - 2020-09-09
 
 ### Fixed
