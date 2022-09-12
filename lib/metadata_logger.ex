@@ -157,6 +157,20 @@ defmodule MetadataLogger do
         timestamp: ~N[2019-11-22 12:23:45.000678]
       }
 
+      # use erl_level (available since Elixir 1.11)
+      iex> MetadataLogger.log_to_map(
+      ...>   :warn,
+      ...>   [foo: 1, foo: 2],
+      ...>   {{2019, 11, 22}, {12, 23, 45, 678}},
+      ...>   [erl_level: :warning]
+      ...> )
+      %{
+        level: :warning,
+        message: %{foo: 2},
+        metadata: %{},
+        timestamp: ~N[2019-11-22 12:23:45.000678]
+      }
+
   """
   @spec log_to_map(
           Logger.level(),
@@ -166,8 +180,11 @@ defmodule MetadataLogger do
         ) ::
           map()
   def log_to_map(level, message, ts, metadata) do
-    with m <- Enum.into(metadata, %{}),
-         m <- Map.drop(m, [:error_logger, :mfa, :report_cb]),
+    m = Enum.into(metadata, %{})
+    {level, m} = Map.pop(m, :erl_level, level)
+    {time, m} = Map.pop(m, :time)
+
+    with m <- Map.drop(m, [:error_logger, :mfa, :report_cb]),
          {app, m} <- Map.pop(m, :application),
          {module, m} <- Map.pop(m, :module),
          {function, m} <- Map.pop(m, :function),
@@ -198,7 +215,7 @@ defmodule MetadataLogger do
     end
     |> Map.put(:level, level)
     |> Map.put(:message, transform_message(message))
-    |> Map.put(:timestamp, transform_timestamp(ts))
+    |> Map.put(:timestamp, transform_timestamp(time, ts))
   end
 
   defp nil_or_inspect(nil), do: nil
@@ -216,9 +233,13 @@ defmodule MetadataLogger do
   defp transform_message(m) when is_list(m), do: IO.iodata_to_binary(m)
   defp transform_message(m), do: to_string(m)
 
-  defp transform_timestamp({{y, month, d}, {h, minutes, s, mil}}) do
+  defp transform_timestamp(nil, {{y, month, d}, {h, minutes, s, mil}}) do
     {:ok, dt} = NaiveDateTime.new(y, month, d, h, minutes, s, mil)
     dt
+  end
+
+  defp transform_timestamp(time_ms, _) do
+    DateTime.from_unix!(time_ms, :microsecond)
   end
 
   defp scrub(map) do
